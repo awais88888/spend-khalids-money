@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spend Khalids' Money</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #333;
+    }
+    header {
+      background: #fff;
+      padding: 20px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid #ddd;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+    #balance {
+      font-size: 1.25rem;
+      color: #27ae60;
+      margin-top: 8px;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .item {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 15px;
+    }
+    .item h2 {
+      font-size: 1.2rem;
+      margin: 10px 0;
+    }
+    .item p {
+      margin: 5px 0;
+      font-weight: bold;
+    }
+    .item .actions {
+      margin-top: auto;
+      width: 100%;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+    .item button {
+      padding: 8px 14px;
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.15s;
+    }
+    .item button.sell {
+      background: #e74c3c;
+    }
+    .item button:hover { opacity: 0.95; }
+    .count {
+      margin-top: 6px;
+      color: #555;
+      font-size: 0.95rem;
+    }
+    #receipt {
+      margin: 20px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      max-width: 600px;
+    }
+    .small { font-size: 0.85rem; color: #666 }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Spend Khalids' Money</h1>
+    <div id="balance" class="small"></div>
+  </header>
+  <div class="container" id="itemsContainer"></div>
+  <div id="receipt"></div>
+
+  <script>
+    const STARTING_BALANCE = 500000;
+
+    const ITEMS = [
+      { name: "Motercycle", price: 100000 },
+      { name: "iPhone 10", price: 50000 },
+      { name: "Coca-Cola Pack", price: 200 },
+      { name: "Bicycle", price: 15000 },
+      { name: "Rashan", price: 5000 },
+      { name: "Khalids Therapy", price: 50000 },
+      { name: "Big Mac", price: 120 },
+      { name: "Flip Flops", price: 200 },
+      { name: "Cereal", price: 500 },
+      { name: "Pencil", price: 5 },
+      { name: "Notebook", price: 60 },
+      { name: "Water Bottle", price: 20 },
+      { name: "Chocolate Bar", price: 40 },
+      { name: "chaaa", price: 50 },
+      { name: "Apple", price: 150 }
+    ];
+
+    let balance = STARTING_BALANCE;
+    const purchases = {};
+
+    const balanceEl = document.getElementById("balance");
+    const container = document.getElementById("itemsContainer");
+    const receiptEl = document.getElementById("receipt");
+
+    function formatMoney(n) {
+      return "$" + n.toLocaleString();
+    }
+
+    function updateBalance() {
+      balanceEl.textContent = `Remaining: ${formatMoney(balance)} (Start: ${formatMoney(STARTING_BALANCE)})`;
+      renderReceipt();
+    }
+
+    function renderItems() {
+      container.innerHTML = "";
+      ITEMS.forEach((item, i) => {
+        const div = document.createElement("div");
+        div.className = "item";
+
+        const title = document.createElement('h2'); title.textContent = item.name;
+        const priceP = document.createElement('p'); priceP.textContent = formatMoney(item.price);
+
+        const actions = document.createElement('div'); actions.className = 'actions';
+        const buyBtn = document.createElement('button'); buyBtn.textContent = 'Buy';
+        const sellBtn = document.createElement('button'); sellBtn.textContent = 'Sell'; sellBtn.className = 'sell';
+
+        const countDiv = document.createElement('div'); countDiv.className = 'count'; countDiv.id = `count-${i}`; countDiv.textContent = 'Bought: 0';
+
+        buyBtn.addEventListener('click', ()=> buyItem(i));
+        sellBtn.addEventListener('click', ()=> sellItem(i));
+
+        actions.appendChild(buyBtn);
+        actions.appendChild(sellBtn);
+
+        div.appendChild(title);
+        div.appendChild(priceP);
+        div.appendChild(actions);
+        div.appendChild(countDiv);
+
+        container.appendChild(div);
+      });
+    }
+
+    function buyItem(index) {
+      const item = ITEMS[index];
+      if (!item) return;
+      if (balance >= item.price) {
+        balance -= item.price;
+        purchases[index] = (purchases[index] || 0) + 1;
+        document.getElementById(`count-${index}`).textContent = `Bought: ${purchases[index]}`;
+        updateBalance();
+      } else {
+        alert('Not enough money!');
+      }
+    }
+
+    function sellItem(index) {
+      const item = ITEMS[index];
+      if (!item) return;
+      const current = purchases[index] || 0;
+      if (current > 0) {
+        purchases[index] = current - 1;
+        balance += item.price;
+        document.getElementById(`count-${index}`).textContent = `Bought: ${purchases[index]}`;
+        updateBalance();
+      } else {
+        alert('You have none to sell');
+      }
+    }
+
+    function renderReceipt() {
+      let total = 0;
+      let lines = [];
+      ITEMS.forEach((item, i) => {
+        const count = purchases[i] || 0;
+        if (count > 0) {
+          const subtotal = item.price * count;
+          total += subtotal;
+          lines.push(`${item.name} x${count} = ${formatMoney(subtotal)}`);
+        }
+      });
+      receiptEl.innerHTML = `<h3>Receipt</h3>${lines.join('<br>')}<br><b>Total Spent: ${formatMoney(STARTING_BALANCE - balance)}</b>`;
+    }
+
+    updateBalance();
+    renderItems();
+  </script>
+</body>
+</html>
